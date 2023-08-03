@@ -1,8 +1,9 @@
 from selenium import webdriver
-import pandas as pd
+import pandas as pd #Library for file management.
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select #Library for the management of select html
 
 
 def get_text_from_table(table, tag_name):
@@ -45,7 +46,22 @@ def get_nobel_winners():
         # Create the WebDriver with options and a context manager (using 'with' statement)
         with webdriver.Chrome(options=chrome_options) as driver:
             # We entered the wikipedia page that contains the nobel prize winners.
-            driver.get("https://es.wikipedia.org/wiki/Anexo:Ganadores_del_Premio_Nobel")
+            driver.get("https://www.wikipedia.org/")
+
+            # We perform the corresponding navigation to search from the main source for Nobel Prize winners.
+            select_language = WebDriverWait(driver,10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '[id="searchLanguage"]'))
+            )
+            select_language = Select(select_language)
+            select_language.select_by_value('es')
+
+            search_input = WebDriverWait(driver,10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '[id="searchInput"]'))
+            )
+
+            search_input.send_keys("Anexo: Ganadores del premio Nobel")
+            search_input.submit()
+
             # Wait for the data table to be present on the page
             data_table = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, '[id="mw-content-text"] table'))
@@ -65,6 +81,7 @@ def get_nobel_winners():
         df.to_csv("nobel_winners.csv", index=False, encoding='utf-8-sig')
 
     except Exception as e:
-        raise print("An error occurred:", e)
+        raise Exception("An error occurred:", e)
+
 
 get_nobel_winners()
